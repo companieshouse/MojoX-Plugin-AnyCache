@@ -20,6 +20,7 @@ sub get_nodes {
 		for my $node (@{$self->config->{nodes}}) {
 			eval {
 		      eval "require $node->{backend};";
+		      warn("Require failed: $@") if $self->config->{debug} && $@;
 		      my $backend = "$node->{backend}"->new;
 		      $backend->config($node);
 		      $self->support_sync(0) if !$backend->support_sync;

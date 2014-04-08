@@ -18,6 +18,7 @@ sub register {
   if(exists $config->{backend}) {
     eval {
       eval "require $config->{backend};";
+      warn "Require failed: $@" if $self->config->{debug} && $@;
       my $backend = $config->{backend}->new;
       $backend->config($config);
       $self->backend($backend);
@@ -31,6 +32,9 @@ sub register {
 sub check_mode {
   my ($self, $cb) = @_;
   die("No backend available") if !$self->backend;
+  use Data::Dumper; print Dumper $self->backend;
+  warn("SYNC: " . $self->backend->support_sync);
+  warn("ASYNC: " . $self->backend->support_async);
   die("Backend " . ref($self->backend) ." doesn't support asynchronous requests") if $cb && !$self->backend->support_async;
   die("Backend " . ref($self->backend) ." doesn't support synchronous requests") if !$cb && !$self->backend->support_sync;
 }
