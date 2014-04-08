@@ -3,6 +3,7 @@
 use strict;
 use warnings;
 use Test::More;
+use Mojo::IOLoop;
 
 unless($ENV{'CACHE_TEST_MEMCACHED'}) {
 	plan skip_all => 'Memcached tests skipped - set CACHE_TEST_MEMCACHED to run tests'
@@ -18,7 +19,7 @@ use_ok $class;
 my $cache = new_ok $class;
 
 my %opts = ();
-$opts{server} = $ENV{'CACHE_TEST_REDIS_HOST'} if $ENV{'CACHE_TEST_REDIS_HOST'};
+$opts{servers} = [ "127.0.0.1:11211" ];
 $cache->register(FakeApp->new, { backend => 'MojoX::Plugin::AnyCache::Backend::Memcached::AnyEvent', %opts });
 isa_ok $cache->backend, 'MojoX::Plugin::AnyCache::Backend::Memcached::AnyEvent';
 can_ok $cache->backend, 'get';

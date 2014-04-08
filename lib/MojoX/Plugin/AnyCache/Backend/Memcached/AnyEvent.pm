@@ -4,7 +4,9 @@ use strict;
 use warnings;
 use Mojo::Base 'MojoX::Plugin::AnyCache::Backend';
 
-use Cache::Memcached::AnyEvent;
+use EV;
+use AnyEvent;
+use AnyEvent::Memcached;
 
 has 'memcached';
 
@@ -15,14 +17,14 @@ sub get_memcached {
 	if(!$self->memcached) {
 		my %opts = ();
 		$opts{servers} = $self->config->{servers} if exists $self->config->{servers};
-		$self->memcached(Cache::Memcached::AnyEvent->new(%opts));
+		$self->memcached(AnyEvent::Memcached->new(%opts));
 	}
 	return $self->memcached;
 }
 
 sub get { 
 	my ($cb, $self) = (pop, shift);
-	$self->get_memcached->get(@_, sub {
+	$self->get_memcached->get(@_, cb => sub {
 		my ($memcached, $value) = @_;
 		$cb->($value);
 	});
@@ -30,7 +32,7 @@ sub get {
 
 sub set {
 	my ($cb, $self) = (pop, shift);
-	$self->get_memcached->set(@_, sub {
+	$self->get_memcached->set(@_, cb => sub {
 		my ($memcached) = @_;
 		$cb->();
 	});
