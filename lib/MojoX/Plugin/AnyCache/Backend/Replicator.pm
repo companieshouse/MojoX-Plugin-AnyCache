@@ -36,16 +36,24 @@ sub get_nodes {
 
 sub get {
 	my ($self, $key, $cb) = @_;
-	$self->{nodes}->[rand @{$self->{nodes}}]->get($key, $cb);
+	my $node = $self->{nodes}->[rand @{$self->{nodes}}];
+	if(my $serialiser = $node->get_serialiser) {
+		return $node->get($key, sub {
+			$cb->($serialiser->deserialise(shift));
+		}) if $cb;
+		return $serialiser->deserialise($node->get($key));
+	} else {
+		return $node->get($key, $cb);
+	}
 }
 
 sub set {
 	my ($self, $key, $value, $cb) = @_;
 	if($cb) {
 		my $delay = Mojo::IOLoop->delay($cb);
-		return $_->set($key, $value, $delay->begin) for @{$self->{nodes}};
+		return $_->set($key, ($_->get_serialiser ? $_->get_serialiser->serialise($value) : $value), $delay->begin) for @{$self->{nodes}};
 	}
-	$_->set($key, $value) for @{$self->{nodes}};
+	$_->set($key, ($_->get_serialiser ? $_->get_serialiser->serialise($value) : $value)) for @{$self->{nodes}};
 }
 
 1;
