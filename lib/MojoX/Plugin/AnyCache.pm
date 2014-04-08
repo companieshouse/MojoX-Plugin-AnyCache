@@ -38,15 +38,25 @@ sub check_mode {
 sub get {
   my ($self, $key, $cb) = @_;
   $self->check_mode($cb);
-  return $self->backend->get($key, sub { $cb->(@_) }) if $cb;
-  return $self->backend->get($key);
+  if(my $serialiser = $self->backend->get_serialiser) {
+    return $self->backend->get($key, sub { $cb->($serialiser->deserialise(@_)) }) if $cb;
+    return $serialiser->deserialise($self->backend->get($key));
+  } else {
+    return $self->backend->get($key, sub { $cb->(@_) }) if $cb;
+    return $self->backend->get($key);
+  }
 }
 
 sub set {
   my ($self, $key, $value, $cb) = @_;
   $self->check_mode($cb);
-  return $self->backend->set($key, $value, sub { $cb->(@_) }) if $cb;
-  return $self->backend->set($key => $value);
+  if(my $serialiser = $self->backend->get_serialiser) {
+    return $self->backend->set($key, $serialiser->serialise($value), sub { $cb->(@_) }) if $cb;
+    return $self->backend->set($key => $serialiser->serialise($value));
+  } else {
+    return $self->backend->set($key, $value, sub { $cb->(@_) }) if $cb;
+    return $self->backend->set($key => $value);
+  }
 }
 
 1;
