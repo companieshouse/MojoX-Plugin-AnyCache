@@ -11,6 +11,7 @@ use Memcached::Client;
 has 'memcached';
 
 has 'support_async' => sub { 1 };
+has 'get_ttl_support' => sub { 0 };
 
 sub get_memcached {
 	my ($self) = @_;
@@ -28,8 +29,9 @@ sub get {
 }
 
 sub set {
-	my ($cb, $self) = (pop, shift);
-	$self->get_memcached->set(@_, sub { $cb->() });
+	my ($cb, $self, $key, $value, $ttl) = (pop, shift, shift, shift, shift);
+	$self->get_memcached->set($key, $value, $ttl, @_, sub { $cb->() });
+	$self->get_memcached->set(":TTL:$key", time + $ttl, $ttl, @_, sub {} ) if $ttl && $self->get_ttl_support;
 }
 
 sub incr {
@@ -45,6 +47,15 @@ sub decr {
 sub del {
 	my ($cb, $self) = (pop, shift);
 	$self->get_memcached->delete(@_, sub { $cb->() });
+}
+
+sub ttl {
+	my ($cb, $self, $key) = (pop, shift, shift);
+	die("get_ttl_support not enabled") if !$self->get_ttl_support;
+	$self->get(":TTL:$key", @_, sub {
+		my ($time) = @_;
+		$cb->($time -= time);
+	});
 }
 
 1;

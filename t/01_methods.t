@@ -31,6 +31,9 @@ like $@, qr/^No backend available/;
 dies_ok { $cache->set('foo' => 'bar') } 'cache set dies without backend';
 like $@, qr/^No backend available/;
 
+dies_ok { $cache->ttl('foo') } 'cache ttl dies without backend';
+like $@, qr/^No backend available/;
+
 dies_ok { $cache->increment('foo' => 1) } 'cache increment dies without backend';
 like $@, qr/^No backend available/;
 dies_ok { $cache->incr('foo' => 1) } 'cache incr dies without backend';
@@ -46,4 +49,4 @@ like $@, qr/^No backend available/;
 dies_ok { $cache->del('foo') } 'cache del dies without backend';
 like $@, qr/^No backend available/;
 
-done_testing(24);
+done_testing(26);

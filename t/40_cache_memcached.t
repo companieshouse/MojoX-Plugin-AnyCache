@@ -3,6 +3,7 @@
 use strict;
 use warnings;
 use Test::More;
+use Test::Exception;
 
 unless($ENV{'CACHE_TEST_MEMCACHED'}) {
 	plan skip_all => 'Memcached tests skipped - set CACHE_TEST_MEMCACHED to run tests'
@@ -21,6 +22,10 @@ $cache->register(FakeApp->new, { backend => 'MojoX::Plugin::AnyCache::Backend::C
 isa_ok $cache->backend, 'MojoX::Plugin::AnyCache::Backend::Cache::Memcached';
 can_ok $cache->backend, 'get';
 can_ok $cache->backend, 'set';
+can_ok $cache->backend, 'incr';
+can_ok $cache->backend, 'decr';
+can_ok $cache->backend, 'del';
+can_ok $cache->backend, 'ttl';
 
 # FIXME should clear memcached, not choose a random key
 # this could still fail!
@@ -30,6 +35,17 @@ my $sync = 0;
 is $cache->get($key), undef, 'unset key returns undef in sync mode';
 $cache->set($key => 'bar');
 is $cache->get($key), 'bar', 'set key returns correct value in sync mode';
+
+dies_ok { $cache->ttl('foo') } 'cache ttl dies without get_ttl_support enabled';
+like $@, qr/^get_ttl_support not enabled/;
+
+$cache->backend->get_ttl_support(1);
+$cache->set('foo' => 1, 5);
+lives_ok { $cache->ttl('foo') } 'cache ttl succeeds with get_ttl_support enabled';
+
+$cache->set('ruux' => 1, 5);
+is $cache->ttl('ruux'), 5, 'ttl returns correct value in sync mode';
+is $cache->get('ruux'), 1, 'set with ttl returns correct value in sync mode';
 
 # Set starting value for memcached
 $cache->set('quux', 0);
@@ -54,4 +70,4 @@ is $cache->get('quux'), 0, 'cache returns correct decr value in sync mode';
 $cache->del('quux');
 is $cache->get('quux'), undef, 'cache deletes value in sync mode';
 
-done_testing(12);
+done_testing(21);

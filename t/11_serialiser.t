@@ -53,6 +53,10 @@ is $cache->get('foo'), 'BAR', 'set key returns correct value in sync mode';
 
 is $cache->backend->get("foo"), '10R', 'serialised data is stored';
 
+$cache->set('ruux' => 'BAR', 5);
+is $cache->ttl('ruux'), 5, 'ttl not affected by serialiser';
+is $cache->backend->get('ruux'), '10R', 'serialised data is stored with ttl';
+
 $cache->backend->support_async(1);
 $cache->get('qux', sub { is shift, undef, 'unset key returns undef in async mode'; Mojo::IOLoop->stop; });
 Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
@@ -62,6 +66,14 @@ $cache->get('qux', sub { is shift, 'BAR', 'set key returns correct value in asyn
 Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
 
 is $cache->backend->get("qux"), '10R', 'serialised data is stored';
+
+$cache->set('tuux' => 'BAR', 5, sub { ok(1, 'callback is called on set in async mode'); Mojo::IOLoop->stop; });
+Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+$cache->ttl('tuux', sub { is shift, 5, 'set key with ttl returns correct ttl in async mode'; Mojo::IOLoop->stop; });
+Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+$cache->get('tuux', sub { is shift, 'BAR', 'set key returns correct value in async mode'; Mojo::IOLoop->stop; });
+Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+is $cache->backend->get("tuux"), '10R', 'serialised data is stored';
 
 $cache->incr('quux', 1);
 is $cache->backend->get('quux'), 1, 'serialiser not used for incr';
@@ -74,4 +86,4 @@ SKIP: {
 	is $cache->get('quux'), 1, 'serialiser not used for numeric value';	
 }
 
-done_testing(19);
+done_testing(25);

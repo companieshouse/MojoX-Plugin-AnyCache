@@ -3,6 +3,7 @@
 use strict;
 use warnings;
 use Test::More;
+use Test::Exception;
 use EV;
 use AnyEvent;
 use Mojo::IOLoop;
@@ -26,6 +27,10 @@ $cache->register(FakeApp->new, { backend => 'MojoX::Plugin::AnyCache::Backend::C
 isa_ok $cache->backend, 'MojoX::Plugin::AnyCache::Backend::Cache::Memcached::AnyEvent';
 can_ok $cache->backend, 'get';
 can_ok $cache->backend, 'set';
+can_ok $cache->backend, 'incr';
+can_ok $cache->backend, 'decr';
+can_ok $cache->backend, 'del';
+can_ok $cache->backend, 'ttl';
 
 # FIXME should clear redis, not choose a random key
 # this could still fail!
@@ -43,6 +48,28 @@ Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
 
 $sync = 0;
 $cache->get($key, sub { is shift, 'bar', 'set key returns correct value in async mode'; Mojo::IOLoop->stop; $sync = 1 });
+is $sync, 0, 'call was asynchronous';
+Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+
+dies_ok { $cache->ttl('foo', sub {}) } 'cache ttl dies without get_ttl_support enabled';
+like $@, qr/^get_ttl_support not enabled/;
+
+$cache->backend->get_ttl_support(1);
+lives_ok { $cache->ttl('foo', sub {}) } 'cache ttl succeeds with get_ttl_support enabled';
+
+# Set with TTL
+$sync = 0;
+$cache->set('ruuv' => 'baz', 5, sub { ok(1, 'callback is called on set with ttl in async mode'); Mojo::IOLoop->stop; $sync = 1 });
+is $sync, 0, 'call was asynchronous';
+Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+
+$sync = 0;
+$cache->ttl('ruuv', sub { is shift, 5, 'set key with ttl returns correct ttl value in async mode'; Mojo::IOLoop->stop; $sync = 1 });
+is $sync, 0, 'call was asynchronous';
+Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+
+$sync = 0;
+$cache->get('ruuv', sub { is shift, 'baz', 'set key with ttl returns correct value in async mode'; Mojo::IOLoop->stop; $sync = 1 });
 is $sync, 0, 'call was asynchronous';
 Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
 
@@ -100,4 +127,4 @@ $cache->get('ruux', sub { is shift, undef, 'delete completed successfully in asy
 is $sync, 0, 'call was asynchronous';
 Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
 
-done_testing(31);
+done_testing(44);

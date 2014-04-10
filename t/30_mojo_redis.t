@@ -23,6 +23,10 @@ $cache->register(FakeApp->new, { backend => 'MojoX::Plugin::AnyCache::Backend::M
 isa_ok $cache->backend, 'MojoX::Plugin::AnyCache::Backend::Mojo::Redis';
 can_ok $cache->backend, 'get';
 can_ok $cache->backend, 'set';
+can_ok $cache->backend, 'incr';
+can_ok $cache->backend, 'decr';
+can_ok $cache->backend, 'del';
+can_ok $cache->backend, 'ttl';
 
 # FIXME should clear redis, not choose a random key
 # this could still fail!
@@ -40,6 +44,22 @@ Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
 
 $sync = 0;
 $cache->get($key, sub { is shift, 'bar', 'set key returns correct value in async mode'; Mojo::IOLoop->stop; $sync = 1 });
+is $sync, 0, 'call was asynchronous';
+Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+
+# Set with TTL
+$sync = 0;
+$cache->set('ruuv' => 'baz', 5, sub { ok(1, 'callback is called on set with ttl in async mode'); Mojo::IOLoop->stop; $sync = 1 });
+is $sync, 0, 'call was asynchronous';
+Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+
+$sync = 0;
+$cache->ttl('ruuv', sub { is shift, 5, 'set key with ttl returns correct ttl value in async mode'; Mojo::IOLoop->stop; $sync = 1 });
+is $sync, 0, 'call was asynchronous';
+Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+
+$sync = 0;
+$cache->get('ruuv', sub { is shift, 'baz', 'set key with ttl returns correct value in async mode'; Mojo::IOLoop->stop; $sync = 1 });
 is $sync, 0, 'call was asynchronous';
 Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
 
@@ -93,4 +113,4 @@ $cache->get('ruux', sub { is shift, undef, 'delete completed successfully in asy
 is $sync, 0, 'call was asynchronous';
 Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
 
-done_testing(31);
+done_testing(41);

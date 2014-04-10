@@ -86,6 +86,14 @@ sub del {
   return $self->backend->del($key);
 }
 
+sub ttl {
+  my $cb = ref($_[-1]) eq 'CODE' ? pop : undef;
+  my ($self, $key) = @_;
+  $self->check_mode($cb);
+  return $self->backend->ttl($key, sub { $cb->(@_) }) if $cb;
+  return $self->backend->ttl($key);
+}
+
 sub increment { shift->incr(@_) }
 sub decrement { shift->decr(@_) }
 sub delete { shift->del(@_) }
@@ -148,3 +156,52 @@ directly, bypassing the backend serialiser:
 
   $self->cache->set('foo', 1);
   $self->cache->backend->get('foo');
+
+=head2 TTL / EXPIRES
+
+=head3 Redis
+
+Full TTL support is available with a Redis backend. Pass the TTL (in seconds)
+to the C<set> method.
+
+  $cache->set("key", "value", 10);
+
+  $cache->set("key", "value", 10, sub {
+    # ...
+  });
+
+And to get the TTL (seconds remaining until expiry)
+
+  my $ttl = $cache->ttl("key");
+
+  $cache->ttl("key", sub {
+    my ($ttl) = @_;
+    # ...
+  });
+
+=head3 Memcached
+
+Full TTL set support is available with a Memcached backend. Pass the TTL (in seconds)
+to the C<set> method.
+
+  $cache->set("key", "value", 10);
+
+  $cache->set("key", "value", 10, sub {
+    # ...
+  });
+
+Unlike a Redis backend, 'get' TTL mode in Memcached is emulated, and the time
+remaining is calculated using timestamps, and stored in a separate prefixed key.
+
+To enable this, set C<get_ttl_support> on the backend:
+
+  $cache->backend->get_ttl_support(1);
+
+This must be done before setting a value. You can then get the TTL as normal:
+
+  my $ttl = $cache->ttl("key");
+
+  $cache->ttl("key", sub {
+    my ($ttl) = @_;
+    # ...
+  });

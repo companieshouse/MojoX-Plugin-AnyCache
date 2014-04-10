@@ -46,6 +46,10 @@ is $cache->get('foo'), undef, 'unset key returns undef in sync mode';
 $cache->set('foo' => 'bar');
 is $cache->get('foo'), 'bar', 'set key returns correct value in sync mode';
 
+$cache->set('ruux' => 1, 5);
+is $cache->ttl('ruux'), 5, 'ttl returns correct value in sync mode';
+is $cache->get('ruux'), 1, 'set with ttl returns correct value in sync mode';
+
 is $cache->incr('bar', 1), 1, 'incr by 1 on unset value returns 1';
 is $cache->incr('baz', 5), 5, 'incr by 5 on unset value returns 5';
 is $cache->incr('bar', 2), 3, 'incr by 2 on 1 returns 3';
@@ -70,4 +74,11 @@ Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
 $cache->get('qux', sub { is shift, 'bar', 'set key returns correct value in async mode'; Mojo::IOLoop->stop; });
 Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
 
-done_testing(33);
+$cache->set('ruux' => 'baz', 5, sub { ok(1, 'callback is called on set with ttl in async mode'); Mojo::IOLoop->stop; });
+Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+$cache->ttl('ruux', sub { is shift, 5, 'set key with ttl returns correct ttl value in async mode'; Mojo::IOLoop->stop; });
+Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+$cache->get('ruux', sub { is shift, 'baz', 'set key with ttl returns correct value in async mode'; Mojo::IOLoop->stop; });
+Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+
+done_testing(38);

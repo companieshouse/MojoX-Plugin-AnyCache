@@ -60,6 +60,12 @@ sub set {
 	$_->set($key, ($_->get_serialiser ? $_->get_serialiser->serialise($value) : $value), $ttl) for @{$self->{nodes}};
 }
 
+sub ttl {
+	my $cb = ref($_[-1]) eq 'CODE' ? pop : undef;
+	my ($self, $key) = @_;
+	$self->{nodes}->[rand @{$self->{nodes}}]->ttl($key, $cb)
+}
+
 sub incr {
 	my $cb = ref($_[-1]) eq 'CODE' ? pop : undef;
 	my ($self, $key, $amount) = @_;

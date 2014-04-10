@@ -30,6 +30,10 @@ $cache->register(FakeApp->new, { backend => 'MojoX::Plugin::AnyCache::Backend::R
 isa_ok $cache->backend, 'MojoX::Plugin::AnyCache::Backend::Replicator';
 can_ok $cache->backend, 'get';
 can_ok $cache->backend, 'set';
+can_ok $cache->backend, 'incr';
+can_ok $cache->backend, 'decr';
+can_ok $cache->backend, 'del';
+can_ok $cache->backend, 'ttl';
 is @{$cache->backend->{nodes}}, 4, 'Backend created 4 nodes';
 
 is $cache->get('foo'), undef, 'unset key returns undef in sync mode';
@@ -38,6 +42,15 @@ is $cache->get('foo'), 'bar', 'set key returns correct value in sync mode';
 
 for (0..3) {
 	is $cache->backend->{nodes}->[$_]->get('foo'), 'bar', "node $_ stored correct value";
+}
+
+$cache->set('roo' => 'bar', 5);
+is $cache->ttl('roo'), 5, 'set key with ttl returns correct ttl in sync mode';
+is $cache->get('roo'), 'bar', 'set key with ttl returns correct value in sync mode';
+
+for (0..3) {
+	is $cache->backend->{nodes}->[$_]->ttl('roo'), 5, "node $_ stored correct ttl";
+	is $cache->backend->{nodes}->[$_]->get('roo'), 'bar', "node $_ stored correct value";
 }
 
 $cache->get('qux', sub { is shift, undef, 'unset key returns undef in async mode'; Mojo::IOLoop->stop; });
@@ -49,6 +62,20 @@ Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
 
 for (0..3) {
 	is $cache->backend->{nodes}->[$_]->get('qux'), 'bar', "node $_ stored correct value";
+}
+
+$cache->get('rux', sub { is shift, undef, 'unset key returns undef in async mode'; Mojo::IOLoop->stop; });
+Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+$cache->set('rux' => 'bar', 5, sub { ok(1, 'callback is called on set in async mode'); Mojo::IOLoop->stop; });
+Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+$cache->ttl('rux', sub { is shift, 5, 'set key with ttl returns correct ttl in async mode'; Mojo::IOLoop->stop; });
+Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+$cache->get('rux', sub { is shift, 'bar', 'set key returns correct value in async mode'; Mojo::IOLoop->stop; });
+Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+
+for (0..3) {
+	is $cache->backend->{nodes}->[$_]->ttl('rux'), 5, "node $_ stored correct ttl";
+	is $cache->backend->{nodes}->[$_]->get('rux'), 'bar', "node $_ stored correct value";
 }
 
 # Increment (synchronous)
@@ -108,4 +135,4 @@ for (0..3) {
 }
 
 
-done_testing(51);
+done_testing(77);

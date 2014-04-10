@@ -21,8 +21,6 @@ my %opts = ();
 $opts{server} = $ENV{'CACHE_TEST_REDIS_HOST'} if $ENV{'CACHE_TEST_REDIS_HOST'};
 $cache->register(FakeApp->new, { backend => 'MojoX::Plugin::AnyCache::Backend::Mojo::Redis', %opts });
 isa_ok $cache->backend, 'MojoX::Plugin::AnyCache::Backend::Mojo::Redis';
-can_ok $cache->backend, 'get';
-can_ok $cache->backend, 'set';
 
 # FIXME should clear redis, not choose a random key
 # this could still fail!
@@ -50,4 +48,4 @@ Mojo::IOLoop->timer(1.5 => sub {
 is $sync, 0, 'call was asynchronous';
 Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
 
-done_testing(13);
+done_testing(11);

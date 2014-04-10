@@ -43,6 +43,14 @@ sub set {
 	});
 }
 
+sub ttl { 
+	my ($cb, $self) = (pop, shift);
+	$self->get_redis->ttl(@_, sub {
+		my ($redis, $value) = @_;
+		$cb->($value);
+	});
+}
+
 sub incr {
 	my ($cb, $self) = (pop, shift, @_);
 	$self->get_redis->incrby(@_, sub {

@@ -20,6 +20,12 @@ sub set {
 	$self->storage->{"TTL:$key"} = $ttl if $ttl;
 	$cb->() if $cb;
 }
+sub ttl {
+	my $cb = ref($_[-1]) eq 'CODE' ? pop : undef;
+	my ($self, $key) = @_;
+	return $cb->($self->storage->{"TTL:$key"}) if $cb;
+	return $self->storage->{"TTL:$key"};
+}
 sub incr {
 	my $cb = ref($_[-1]) eq 'CODE' ? pop : undef;
 	my ($self, $key, $amount) = @_;

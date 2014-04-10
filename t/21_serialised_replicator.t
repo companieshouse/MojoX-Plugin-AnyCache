@@ -54,6 +54,15 @@ for (0..3) {
 	is $cache->backend->{nodes}->[$_]->get('foo'), '10R', "node $_ stored correct value";
 }
 
+$cache->set('roo' => 'bar', 5);
+is $cache->ttl('roo'), 5, 'set key with ttl returns correct ttl in sync mode';
+is $cache->get('roo'), 'bar', 'set key with ttl returns correct value in sync mode';
+
+for (0..3) {
+	is $cache->backend->{nodes}->[$_]->ttl('roo'), 5, "node $_ stored correct ttl";
+	is $cache->backend->{nodes}->[$_]->get('roo'), 'bar', "node $_ stored correct value";
+}
+
 $cache->get('qux', sub { is shift, undef, 'unset key returns undef in async mode'; Mojo::IOLoop->stop; });
 Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
 $cache->set('qux' => 'BAR', sub { ok(1, 'callback is called on set in async mode'); Mojo::IOLoop->stop; });
@@ -63,6 +72,21 @@ Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
 
 for (0..3) {
 	is $cache->backend->{nodes}->[$_]->get('qux'), '10R', "node $_ stored correct value";
+}
+
+
+$cache->get('rux', sub { is shift, undef, 'unset key returns undef in async mode'; Mojo::IOLoop->stop; });
+Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+$cache->set('rux' => 'bar', 5, sub { ok(1, 'callback is called on set in async mode'); Mojo::IOLoop->stop; });
+Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+$cache->ttl('rux', sub { is shift, 5, 'set key with ttl returns correct ttl in async mode'; Mojo::IOLoop->stop; });
+Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+$cache->get('rux', sub { is shift, 'bar', 'set key returns correct value in async mode'; Mojo::IOLoop->stop; });
+Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+
+for (0..3) {
+	is $cache->backend->{nodes}->[$_]->ttl('rux'), 5, "node $_ stored correct ttl";
+	is $cache->backend->{nodes}->[$_]->get('rux'), 'bar', "node $_ stored correct value";
 }
 
 # Increment (synchronous)
@@ -129,4 +153,4 @@ for (0..3) {
 	Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
 }
 
-done_testing(51);
+done_testing(73);

@@ -19,8 +19,6 @@ my $cache = new_ok $class;
 
 $cache->register(FakeApp->new, { backend => 'MojoX::Plugin::AnyCache::Backend::Cache::Memcached', servers => [ "127.0.0.1:11211" ] });
 isa_ok $cache->backend, 'MojoX::Plugin::AnyCache::Backend::Cache::Memcached';
-can_ok $cache->backend, 'get';
-can_ok $cache->backend, 'set';
 
 # FIXME should clear memcached, not choose a random key
 # this could still fail!
@@ -33,4 +31,4 @@ sleep 2;
 is $cache->get($key), undef, 'key has expired using set with ttl in async mode';
 
 
-done_testing(8);
+done_testing(6);
