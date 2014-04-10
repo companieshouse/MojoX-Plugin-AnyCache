@@ -1,10 +1,12 @@
-package MojoX::Plugin::AnyCache::Backend::Memcached::AnyEvent;
+package MojoX::Plugin::AnyCache::Backend::Memcached::Client;
 
 use strict;
 use warnings;
 use Mojo::Base 'MojoX::Plugin::AnyCache::Backend';
 
-use Cache::Memcached::AnyEvent;
+use EV;
+use AnyEvent;
+use Memcached::Client;
 
 has 'memcached';
 
@@ -15,25 +17,19 @@ sub get_memcached {
 	if(!$self->memcached) {
 		my %opts = ();
 		$opts{servers} = $self->config->{servers} if exists $self->config->{servers};
-		$self->memcached(Cache::Memcached::AnyEvent->new(%opts));
+		$self->memcached(Memcached::Client->new(%opts));
 	}
 	return $self->memcached;
 }
 
 sub get { 
 	my ($cb, $self) = (pop, shift);
-	$self->get_memcached->get(@_, sub {
-		my ($memcached, $value) = @_;
-		$cb->($value);
-	});
+	$self->get_memcached->get(@_, sub { $cb->(shift) });
 }
 
 sub set {
 	my ($cb, $self) = (pop, shift);
-	$self->get_memcached->set(@_, sub {
-		my ($memcached) = @_;
-		$cb->();
-	});
+	$self->get_memcached->set(@_, sub { $cb->() });
 }
 
 1;

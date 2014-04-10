@@ -1,4 +1,4 @@
-package MojoX::Plugin::AnyCache::Backend::Redis;
+package MojoX::Plugin::AnyCache::Backend::Mojo::Redis;
 
 use strict;
 use warnings;

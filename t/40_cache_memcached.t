@@ -17,8 +17,8 @@ my $class = "MojoX::Plugin::AnyCache";
 use_ok $class;
 my $cache = new_ok $class;
 
-$cache->register(FakeApp->new, { backend => 'MojoX::Plugin::AnyCache::Backend::Memcached', servers => [ "127.0.0.1:11211" ] });
-isa_ok $cache->backend, 'MojoX::Plugin::AnyCache::Backend::Memcached';
+$cache->register(FakeApp->new, { backend => 'MojoX::Plugin::AnyCache::Backend::Cache::Memcached', servers => [ "127.0.0.1:11211" ] });
+isa_ok $cache->backend, 'MojoX::Plugin::AnyCache::Backend::Cache::Memcached';
 can_ok $cache->backend, 'get';
 can_ok $cache->backend, 'set';
 
@@ -26,6 +26,7 @@ can_ok $cache->backend, 'set';
 # this could still fail!
 my $key = rand(10000000);
 
+my $sync = 0;
 is $cache->get($key), undef, 'unset key returns undef in sync mode';
 $cache->set($key => 'bar');
 is $cache->get($key), 'bar', 'set key returns correct value in sync mode';

@@ -19,8 +19,8 @@ my $cache = new_ok $class;
 
 my %opts = ();
 $opts{server} = $ENV{'CACHE_TEST_REDIS_HOST'} if $ENV{'CACHE_TEST_REDIS_HOST'};
-$cache->register(FakeApp->new, { backend => 'MojoX::Plugin::AnyCache::Backend::Redis', %opts });
-isa_ok $cache->backend, 'MojoX::Plugin::AnyCache::Backend::Redis';
+$cache->register(FakeApp->new, { backend => 'MojoX::Plugin::AnyCache::Backend::Mojo::Redis', %opts });
+isa_ok $cache->backend, 'MojoX::Plugin::AnyCache::Backend::Mojo::Redis';
 can_ok $cache->backend, 'get';
 can_ok $cache->backend, 'set';
 
@@ -28,11 +28,19 @@ can_ok $cache->backend, 'set';
 # this could still fail!
 my $key = rand(10000000);
 
-$cache->get($key, sub { is shift, undef, 'unset key returns undef in async mode'; Mojo::IOLoop->stop; });
-Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
-$cache->set($key => 'bar', sub { ok(1, 'callback is called on set in async mode'); Mojo::IOLoop->stop; });
-Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
-$cache->get($key, sub { is shift, 'bar', 'set key returns correct value in async mode'; Mojo::IOLoop->stop; });
+my $sync = 0;
+$cache->get($key, sub { is shift, undef, 'unset key returns undef in async mode'; Mojo::IOLoop->stop; $sync = 1 });
+is $sync, 0, 'call was asynchronous';
 Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
 
-done_testing(8);
+$sync = 0;
+$cache->set($key => 'bar', sub { ok(1, 'callback is called on set in async mode'); Mojo::IOLoop->stop; $sync = 1 });
+is $sync, 0, 'call was asynchronous';
+Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+
+$sync = 0;
+$cache->get($key, sub { is shift, 'bar', 'set key returns correct value in async mode'; Mojo::IOLoop->stop; $sync = 1 });
+is $sync, 0, 'call was asynchronous';
+Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+
+done_testing(11);

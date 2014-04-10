@@ -1,4 +1,4 @@
-package MojoX::Plugin::AnyCache::Backend::Memcached;
+package MojoX::Plugin::AnyCache::Backend::Cache::Memcached;
 
 use strict;
 use warnings;
