@@ -46,4 +46,59 @@ $cache->get($key, sub { is shift, 'bar', 'set key returns correct value in async
 is $sync, 0, 'call was asynchronous';
 Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
 
-done_testing(11);
+# Set starting value for memcached
+$cache->set('ruux', 0, sub { Mojo::IOLoop->stop });
+Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+
+# Increment (asynchronous)
+$sync = 0;
+$cache->incr('ruux', 1, sub { ok 1, 'callback is called on incr in async mode'; Mojo::IOLoop->stop; $sync = 1 });
+is $sync, 0, 'call was asynchronous';
+Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+$sync = 0;
+$cache->get('ruux', sub { is shift, 1, 'increment completed successfully in async mode'; Mojo::IOLoop->stop; $sync = 1 });
+is $sync, 0, 'call was asynchronous';
+Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+
+# Increment (asynchronous)
+$sync = 0;
+$cache->incr('ruux', 5, sub { ok 1, 'callback is called on incr >1 in async mode'; Mojo::IOLoop->stop; $sync = 1 });
+is $sync, 0, 'call was asynchronous';
+Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+$sync = 0;
+$cache->get('ruux', sub { is shift, 6, 'increment >1 completed successfully in async mode'; Mojo::IOLoop->stop; $sync = 1 });
+is $sync, 0, 'call was asynchronous';
+Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+
+# Decrement (asynchronous)
+$sync = 0;
+$cache->decr('ruux', 5, sub { ok 1, 'callback is called on decr >1 in async mode'; Mojo::IOLoop->stop });
+is $sync, 0, 'call was asynchronous';
+Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+$sync = 0;
+$cache->get('ruux', sub { is shift, 1, 'decrement >1 completed successfully in async mode'; Mojo::IOLoop->stop; $sync = 1 });
+is $sync, 0, 'call was asynchronous';
+Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+
+# Decrement (asynchronous)
+$sync = 0;
+$cache->decr('ruux', 1, sub { ok -1, 'callback is called on decr in async mode'; Mojo::IOLoop->stop });
+is $sync, 0, 'call was asynchronous';
+Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+$sync = 0;
+$cache->get('ruux', sub { is shift, 0, 'increment completed successfully in async mode'; Mojo::IOLoop->stop; $sync = 1 });
+is $sync, 0, 'call was asynchronous';
+Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+
+# Delete (asynchronous)
+$sync = 0;
+$cache->del('ruux', sub { ok 1, 'callback is called on del in async mode'; Mojo::IOLoop->stop });
+is $sync, 0, 'call was asynchronous';
+Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+$sync = 0;
+$cache->get('ruux', sub { is shift, undef, 'delete completed successfully in async mode'; Mojo::IOLoop->stop; $sync = 1 });
+is $sync, 0, 'call was asynchronous';
+Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+
+
+done_testing(31);

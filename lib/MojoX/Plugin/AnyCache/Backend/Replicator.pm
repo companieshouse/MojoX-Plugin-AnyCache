@@ -52,9 +52,40 @@ sub set {
 	my ($self, $key, $value, $cb) = @_;
 	if($cb) {
 		my $delay = Mojo::IOLoop->delay($cb);
-		return $_->set($key, ($_->get_serialiser ? $_->get_serialiser->serialise($value) : $value), $delay->begin) for @{$self->{nodes}};
+		$_->set($key, ($_->get_serialiser ? $_->get_serialiser->serialise($value) : $value), $delay->begin) for @{$self->{nodes}};
+		return;
 	}
 	$_->set($key, ($_->get_serialiser ? $_->get_serialiser->serialise($value) : $value)) for @{$self->{nodes}};
+}
+
+sub incr {
+	my ($self, $key, $amount, $cb) = @_;
+	if($cb) {
+		my $delay = Mojo::IOLoop->delay($cb);
+		$_->incr($key, $amount, $delay->begin) for @{$self->{nodes}};
+		return;
+	}
+	$_->incr($key, $amount) for @{$self->{nodes}};
+}
+
+sub decr {
+	my ($self, $key, $amount, $cb) = @_;
+	if($cb) {
+		my $delay = Mojo::IOLoop->delay($cb);
+		$_->decr($key, $amount, $delay->begin) for @{$self->{nodes}};
+		return;
+	}
+	$_->decr($key, $amount) for @{$self->{nodes}};
+}
+
+sub del {
+	my ($self, $key, $cb) = @_;
+	if($cb) {
+		my $delay = Mojo::IOLoop->delay($cb);
+		$_->del($key, $delay->begin) for @{$self->{nodes}};
+		return;
+	}
+	$_->del($key) for @{$self->{nodes}};
 }
 
 1;

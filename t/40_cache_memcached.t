@@ -31,4 +31,27 @@ is $cache->get($key), undef, 'unset key returns undef in sync mode';
 $cache->set($key => 'bar');
 is $cache->get($key), 'bar', 'set key returns correct value in sync mode';
 
-done_testing(7);
+# Set starting value for memcached
+$cache->set('quux', 0);
+
+# Increment (synchronous)
+$cache->incr('quux', 1);
+is $cache->get('quux'), 1, 'cache returns correct incr value in sync mode';
+
+# Increment (synchronous) >1
+$cache->incr('quux', 5);
+is $cache->get('quux'), 6, 'cache returns correct incr >1 value in sync mode';
+
+# Decrement (synchronous) >1
+$cache->decr('quux', 5);
+is $cache->get('quux'), 1, 'cache returns correct decr >1 value in sync mode';
+
+# Decrement (synchronous)
+$cache->decr('quux', 1);
+is $cache->get('quux'), 0, 'cache returns correct decr value in sync mode';
+
+# Delete (synchronous)
+$cache->del('quux');
+is $cache->get('quux'), undef, 'cache deletes value in sync mode';
+
+done_testing(12);

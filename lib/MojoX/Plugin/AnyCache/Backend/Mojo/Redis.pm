@@ -36,4 +36,28 @@ sub set {
 	});
 }
 
+sub incr {
+	my ($cb, $self) = (pop, shift, @_);
+	$self->get_redis->incrby(@_, sub {
+		my ($redis, $value) = @_;
+		$cb->($value);
+	});
+}
+
+sub decr {
+	my ($cb, $self) = (pop, shift, @_);
+	$self->get_redis->decrby(@_, sub {
+		my ($redis, $value) = @_;
+		$cb->($value);
+	});
+}
+
+sub del {
+	my ($cb, $self) = (pop, shift, @_);
+	$self->get_redis->del(@_, sub {
+		my ($redis) = @_;
+		$cb->();
+	});
+}
+
 1;

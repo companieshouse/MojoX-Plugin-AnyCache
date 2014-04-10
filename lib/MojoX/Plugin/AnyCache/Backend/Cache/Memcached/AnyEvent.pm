@@ -30,4 +30,19 @@ sub set {
 	$self->get_memcached->set(@_, sub { $cb->() });
 }
 
+sub incr {
+	my ($cb, $self) = (pop, shift);
+	$self->get_memcached->incr(@_, sub { $cb->() });
+}
+
+sub decr {
+	my ($cb, $self) = (pop, shift);
+	$self->get_memcached->decr(@_, sub { $cb->() });
+}
+
+sub del {
+	my ($cb, $self) = (pop, shift);
+	$self->get_memcached->delete(@_, sub { $cb->() });
+}
+
 1;

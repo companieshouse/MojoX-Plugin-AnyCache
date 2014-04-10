@@ -5,27 +5,13 @@ use warnings;
 use Test::More;
 use Mojo::IOLoop;
 
+use File::Basename;
+use lib dirname(__FILE__);
+use FakeBackend;
+
 package FakeApp {
 	use Mojo::Base -base;
 	sub helper {}
-}
-
-package FakeBackend {
-	use Mojo::Base 'MojoX::Plugin::AnyCache::Backend';
-	my $storage = {};
-	has 'config';
-	has 'support_sync' => sub { 1 };
-	has 'support_async' => sub { 1 };
-	sub get {
-		my ($self, $key, $cb) = @_;
-		return $cb->($storage->{$key}) if $cb;
-		return $storage->{$key};
-	}
-	sub set {
-		my ($self, $key, $value, $cb) = @_;
-		$storage->{$key} = $value;
-		$cb->() if $cb;
-	}
 }
 
 package FakeSerialiser {
@@ -79,4 +65,68 @@ for (0..3) {
 	is $cache->backend->{nodes}->[$_]->get('qux'), '10R', "node $_ stored correct value";
 }
 
-done_testing(19);
+# Increment (synchronous)
+$cache->incr('quux', 1);
+SKIP: {
+	skip 'FIXME ->get on incr/decr value uses deserialiser', 1;
+	is $cache->get('quux'), 1, 'cache returns correct incr value in sync mode';
+}
+for (0..3) {
+	is $cache->backend->{nodes}->[$_]->get('quux'), 1, "node $_ incremented correctly";
+}
+
+# Decrement (synchronous)
+$cache->decr('quuy', 1);
+SKIP: {
+	skip 'FIXME ->get on incr/decr value uses deserialiser', 1;
+	is $cache->get('quuy'), -1, 'cache returns correct decr value in sync mode';
+}
+for (0..3) {
+	is $cache->backend->{nodes}->[$_]->get('quuy'), -1, "node $_ decremented correctly";
+}
+
+# Delete (synchronous)
+$cache->del('quux');
+SKIP: {
+	skip 'FIXME ->get on incr/decr value uses deserialiser', 1;
+	is $cache->get('quuy'), -1, 'cache returns correct decr value in sync mode';
+}
+for (0..3) {
+	is $cache->backend->{nodes}->[$_]->get('quuy'), -1, "node $_ decremented correctly";
+}
+
+# Increment (asynchronous)
+$cache->incr('ruux', 1, sub { ok 1, 'callback is called on incr in async mode'; Mojo::IOLoop->stop });
+Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+SKIP: {
+	skip 'FIXME ->get on incr/decr value uses deserialiser', 1;
+	$cache->get('ruux', sub { is 1, undef, 'incr is successful in async mode'; Mojo::IOLoop->stop; });
+	Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+}
+for (0..3) {
+	$cache->backend->{nodes}->[$_]->get('ruux', sub { is shift, 1, "node $_ incremented correctly"; Mojo::IOLoop->stop; });
+	Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+}
+
+# Decrement (asynchronous)
+$cache->decr('ruuy', 1, sub { ok -1, 'callback is called on decr in async mode'; Mojo::IOLoop->stop });
+Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+SKIP: {
+	skip 'FIXME ->get on incr/decr value uses deserialiser', 1;
+	$cache->get('ruuy', sub { is -1, undef, 'decr is successful in async mode'; Mojo::IOLoop->stop; });
+	Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+}
+for (0..3) {
+	$cache->backend->{nodes}->[$_]->get('ruuy', sub { is shift, -1, "node $_ incremented correctly"; Mojo::IOLoop->stop; });
+	Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+}
+
+# Delete (asynchronous)
+$cache->del('ruux', sub { ok 1, 'callback is called on del in async mode'; Mojo::IOLoop->stop });
+Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+for (0..3) {
+	$cache->backend->{nodes}->[$_]->get('ruux', sub { is shift, undef, "node $_ deleted correctly"; Mojo::IOLoop->stop; });
+	Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+}
+
+done_testing(51);

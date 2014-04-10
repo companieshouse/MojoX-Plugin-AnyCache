@@ -22,5 +22,8 @@ sub get_memcached {
 
 sub get { shift->get_memcached->get(@_) }
 sub set { shift->get_memcached->set(@_)	}
+sub incr { shift->get_memcached->incr(@_) }
+sub decr { shift->get_memcached->decr(@_) }
+sub del { shift->get_memcached->delete(@_) }
 
 1;

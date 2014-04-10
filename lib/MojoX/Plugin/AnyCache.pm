@@ -60,6 +60,31 @@ sub set {
   }
 }
 
+sub incr {
+  my ($self, $key, $amount, $cb) = @_;
+  $self->check_mode($cb);
+  return $self->backend->incr($key, $amount, sub { $cb->(@_) }) if $cb;
+  return $self->backend->incr($key => $amount);
+}
+
+sub decr {
+  my ($self, $key, $amount, $cb) = @_;
+  $self->check_mode($cb);
+  return $self->backend->decr($key, $amount, sub { $cb->(@_) }) if $cb;
+  return $self->backend->decr($key => $amount);
+}
+
+sub del {
+  my ($self, $key, $cb) = @_;
+  $self->check_mode($cb);
+  return $self->backend->del($key, sub { $cb->(@_) }) if $cb;
+  return $self->backend->del($key);
+}
+
+sub increment { shift->incr(@_) }
+sub decrement { shift->decr(@_) }
+sub delete { shift->del(@_) }
+
 1;
 
 =encoding utf8
@@ -96,3 +121,25 @@ caching backends, for example Redis or Memcached.
 It also has a built-in replicator backend (L<MojoX::Plugin::AnyCache::Backend::Replicator>)
 which automatically replicates values across multiple backend cache nodes.
 
+=head2 SERIALISATION
+
+The cache backend module supports an optional serialiser module.
+
+  $app->plugin('MojoX::Plugin::AnyCache' => {
+    backend => 'MojoX::Plugin::AnyCache::Backend::Redis',
+    server => '127.0.0.1:6379',
+    serialiser => 'MojoX::Plugin::AnyCache::Serialiser::MessagePack'
+  });
+
+=head4 SERIALISER WARNING
+
+If you use a serialiser, C<incr> or C<decr> a value, then retrieve
+the value using C<get>, the value returned is deserialised.
+
+With the FakeSerialiser used in tests, this means C<1> is translated to an C<A>.
+
+This 'bug' can be avoided by reading the value from the cache backend
+directly, bypassing the backend serialiser:
+
+  $self->cache->set('foo', 1);
+  $self->cache->backend->get('foo');
