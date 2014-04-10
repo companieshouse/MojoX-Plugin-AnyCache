@@ -30,9 +30,16 @@ sub get {
 
 sub set {
 	my ($cb, $self) = (pop, shift);
-	$self->get_redis->set(@_, sub {
+	my ($key, $value, $ttl) = @_;
+	$self->get_redis->set($key, $value, sub {
 		my ($redis) = @_;
-		$cb->();
+		if($ttl) {
+			$self->get_redis->expire($key, $ttl, sub {
+				$cb->();
+			});
+		} else {
+			$cb->();
+		}
 	});
 }
 

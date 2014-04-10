@@ -37,7 +37,8 @@ sub check_mode {
 }
 
 sub get {
-  my ($self, $key, $cb) = @_;
+  my $cb = ref($_[-1]) eq 'CODE' ? pop : undef;
+  my ($self, $key) = @_;
   $self->check_mode($cb);
   if(my $serialiser = $self->backend->get_serialiser) {
     return $self->backend->get($key, sub { $cb->($serialiser->deserialise(@_)) }) if $cb;
@@ -49,33 +50,37 @@ sub get {
 }
 
 sub set {
-  my ($self, $key, $value, $cb) = @_;
+  my $cb = ref($_[-1]) eq 'CODE' ? pop : undef;
+  my ($self, $key, $value, $ttl) = @_;
   $self->check_mode($cb);
   if(my $serialiser = $self->backend->get_serialiser) {
-    return $self->backend->set($key, $serialiser->serialise($value), sub { $cb->(@_) }) if $cb;
-    return $self->backend->set($key => $serialiser->serialise($value));
+    return $self->backend->set($key, $serialiser->serialise($value), $ttl, sub { $cb->(@_) }) if $cb;
+    return $self->backend->set($key => $serialiser->serialise($value), $ttl);
   } else {
-    return $self->backend->set($key, $value, sub { $cb->(@_) }) if $cb;
-    return $self->backend->set($key => $value);
+    return $self->backend->set($key, $value, $ttl, sub { $cb->(@_) }) if $cb;
+    return $self->backend->set($key => $value, $ttl);
   }
 }
 
 sub incr {
-  my ($self, $key, $amount, $cb) = @_;
+  my $cb = ref($_[-1]) eq 'CODE' ? pop : undef;
+  my ($self, $key, $amount) = @_;
   $self->check_mode($cb);
   return $self->backend->incr($key, $amount, sub { $cb->(@_) }) if $cb;
   return $self->backend->incr($key => $amount);
 }
 
 sub decr {
-  my ($self, $key, $amount, $cb) = @_;
+  my $cb = ref($_[-1]) eq 'CODE' ? pop : undef;
+  my ($self, $key, $amount) = @_;
   $self->check_mode($cb);
   return $self->backend->decr($key, $amount, sub { $cb->(@_) }) if $cb;
   return $self->backend->decr($key => $amount);
 }
 
 sub del {
-  my ($self, $key, $cb) = @_;
+  my $cb = ref($_[-1]) eq 'CODE' ? pop : undef;
+  my ($self, $key) = @_;
   $self->check_mode($cb);
   return $self->backend->del($key, sub { $cb->(@_) }) if $cb;
   return $self->backend->del($key);

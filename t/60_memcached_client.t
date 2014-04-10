@@ -100,5 +100,4 @@ $cache->get('ruux', sub { is shift, undef, 'delete completed successfully in asy
 is $sync, 0, 'call was asynchronous';
 Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
 
-
 done_testing(31);

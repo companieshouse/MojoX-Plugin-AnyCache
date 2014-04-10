@@ -8,29 +8,35 @@ has 'support_sync' => sub { 1 };
 has 'support_async' => sub { 1 };
 
 sub get {
-	my ($self, $key, $cb) = @_;
+	my $cb = ref($_[-1]) eq 'CODE' ? pop : undef;
+	my ($self, $key) = @_;
 	return $cb->($self->storage->{$key}) if $cb;
 	return $self->storage->{$key};
 }
 sub set {
-	my ($self, $key, $value, $cb) = @_;
+	my $cb = ref($_[-1]) eq 'CODE' ? pop : undef;
+	my ($self, $key, $value, $ttl) = @_;
 	$self->storage->{$key} = $value;
+	$self->storage->{"TTL:$key"} = $ttl if $ttl;
 	$cb->() if $cb;
 }
 sub incr {
-	my ($self, $key, $amount, $cb) = @_;
+	my $cb = ref($_[-1]) eq 'CODE' ? pop : undef;
+	my ($self, $key, $amount) = @_;
 	$self->storage->{$key} //= 0;
 	$self->storage->{$key} += $amount;
 	$cb ? $cb->($self->storage->{$key}) : $self->storage->{$key};
 }
 sub decr {
-	my ($self, $key, $amount, $cb) = @_;
+	my $cb = ref($_[-1]) eq 'CODE' ? pop : undef;
+	my ($self, $key, $amount) = @_;
 	$self->storage->{$key} //= 0;
 	$self->storage->{$key} -= $amount;
 	$cb ? $cb->($self->storage->{$key}) : $self->storage->{$key};
 }
 sub del {
-	my ($self, $key, $cb) = @_;
+	my $cb = ref($_[-1]) eq 'CODE' ? pop : undef;
+	my ($self, $key) = @_;
 	delete $self->storage->{$key};
 	$cb->() if $cb;
 }

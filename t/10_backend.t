@@ -23,6 +23,9 @@ $cache->register(FakeApp->new, { backend => 'FakeBackend' });
 isa_ok $cache->backend, 'FakeBackend';
 can_ok $cache->backend, 'get';
 can_ok $cache->backend, 'set';
+can_ok $cache->backend, 'incr';
+can_ok $cache->backend, 'decr';
+can_ok $cache->backend, 'del';
 
 is $cache->backend->support_sync, 1, 'default support_sync value retrieved';
 is $cache->backend->support_async, 1, 'default support_sync value retrieved';
@@ -67,4 +70,4 @@ Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
 $cache->get('qux', sub { is shift, 'bar', 'set key returns correct value in async mode'; Mojo::IOLoop->stop; });
 Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
 
-done_testing(30);
+done_testing(33);
