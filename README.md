@@ -30,14 +30,6 @@ caching backends, for example Redis or Memcached.
 It also has a built-in replicator backend ([MojoX::Plugin::AnyCache::Backend::Replicator](https://metacpan.org/pod/MojoX::Plugin::AnyCache::Backend::Replicator))
 which automatically replicates values across multiple backend cache nodes.
 
-#### Build warning
-
-If you rebuild this plugin with Dist::Zilla, you'll need to manually
-edit Makefile.PL and recreate the distribution tar file to remove
-the dependencies on Memcached and Redis clients.
-
-Dist::Zilla Autoprereqs appears to be ignoring the skip= lines in dist.ini.
-
 ## SERIALISATION
 
 The cache backend module supports an optional serialiser module.
