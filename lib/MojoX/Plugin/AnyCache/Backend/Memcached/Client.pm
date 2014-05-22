@@ -15,11 +15,9 @@ has 'get_ttl_support' => sub { 0 };
 
 sub get_memcached {
 	my ($self) = @_;
-	if(!$self->memcached) {
-		my %opts = ();
-		$opts{servers} = $self->config->{servers} if exists $self->config->{servers};
-		$self->memcached(Memcached::Client->new(%opts));
-	}
+    my %opts = ();
+	$opts{servers} = $self->config->{servers} if exists $self->config->{servers};
+	$self->memcached(Memcached::Client->new(%opts));
 	return $self->memcached;
 }
 
