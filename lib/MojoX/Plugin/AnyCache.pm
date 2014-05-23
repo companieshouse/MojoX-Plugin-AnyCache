@@ -4,6 +4,7 @@ use Mojo::Base 'Mojolicious::Plugin';
 
 our $VERSION = '0.02';
 
+has '_raw';
 has 'app';
 has 'backend';
 has 'config';
@@ -42,13 +43,11 @@ sub raw {
     my $clone = $self->new;
 
     # Deep copy
-    $clone->app($self->app);
-    $clone->backend($self->backend);
-    $clone->config( {} );
+    $clone->app    ( $self->app     );
+    $clone->backend( $self->backend );
+    $clone->config ( $self->config  );
 
-    foreach (keys %{$self->config}) {
-        $clone->config->{$_} = $self->config->{$_} unless /serialiser/;
-    }
+    $clone->_raw(1);
 
     return $clone;
 }
@@ -57,7 +56,7 @@ sub get {
   my $cb = ref($_[-1]) eq 'CODE' ? pop : undef;
   my ($self, $key) = @_;
   $self->check_mode($cb);
-  if(my $serialiser = $self->backend->get_serialiser) {
+  if( !$self->_raw && (my $serialiser = $self->backend->get_serialiser)) {
     return $self->backend->get($key, sub { $cb->($serialiser->deserialise(@_)) }) if $cb;
     return $serialiser->deserialise($self->backend->get($key));
   } else {
@@ -70,7 +69,7 @@ sub set {
   my $cb = ref($_[-1]) eq 'CODE' ? pop : undef;
   my ($self, $key, $value, $ttl) = @_;
   $self->check_mode($cb);
-  if(my $serialiser = $self->backend->get_serialiser) {
+  if( !$self->_raw && (my $serialiser = $self->backend->get_serialiser)) {
     return $self->backend->set($key, $serialiser->serialise($value), $ttl, sub { $cb->(@_) }) if $cb;
     return $self->backend->set($key => $serialiser->serialise($value), $ttl);
   } else {
