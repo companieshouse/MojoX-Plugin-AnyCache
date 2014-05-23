@@ -36,6 +36,23 @@ sub check_mode {
   die("Backend " . ref($self->backend) ." doesn't support synchronous requests") if !$cb && !$self->backend->support_sync;
 }
 
+sub raw {
+    my ($self) = @_;
+
+    my $clone = $self->new;
+
+    # Deep copy
+    $clone->app($self->app);
+    $clone->backend($self->backend);
+    $clone->config( {} );
+
+    foreach (keys %{$self->config}) {
+        $clone->config->{$_} = $self->config->{$_} unless /serialiser/;
+    }
+
+    return $clone;
+}
+
 sub get {
   my $cb = ref($_[-1]) eq 'CODE' ? pop : undef;
   my ($self, $key) = @_;
