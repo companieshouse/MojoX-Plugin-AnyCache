@@ -43,6 +43,5 @@ is $cache->get('foo'), undef, 'unset key returns undef in sync mode';
 $cache->set('foo' => 'BAR');
 is $cache->get('foo'), 'BAR', 'set key returns correct value in sync mode';
 is $cache->raw->get('foo'), '10R', 'set key returns correct value in sync mode';
-is $cache->backend->raw->get("foo"), '10R', 'serialised data is stored';
 
 done_testing(8);
