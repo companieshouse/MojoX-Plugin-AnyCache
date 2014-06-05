@@ -3,8 +3,6 @@ package MojoX::Plugin::ManyCache;
 use Mojo::Base 'Mojolicious::Plugin';
 use MojoX::Plugin::AnyCache;
 
-our $VERSION = '0.03';
-
 has 'pool';
 
 sub register {
