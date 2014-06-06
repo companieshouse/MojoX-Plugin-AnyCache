@@ -11,15 +11,15 @@ has 'serialiser';
 
 sub get_serialiser {
 	my ($self) = @_;
-	if(!$self->serialiser && $self->config->{serialiser}) {
+	if(!$self->serialiser && (my $s = $self->config->{serialiser})) {
 		eval {
-			eval "require $self->config->{serialiser};";
-			warn("Require failed: $@") if $self->config->{debug} && $@;
+			eval "require $s;";
+			warn("Require failed: $@") if $@;
 			my $serialiser = $self->config->{serialiser}->new;
 			$serialiser->config($self->config);
 			$self->serialiser($serialiser);
 		};
-		die("Failed to load serialiser $self->config->{serialiser}: $@") if $@;
+		die("Failed to load serialiser $s: $@") if $@;
 	}
 	return $self->serialiser;
 }

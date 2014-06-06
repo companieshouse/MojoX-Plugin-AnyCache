@@ -57,7 +57,7 @@ sub get {
   my ($self, $key) = @_;
   $self->check_mode($cb);
   if( !$self->_raw && (my $serialiser = $self->backend->get_serialiser)) {
-    return $self->backend->get($key, sub { $cb->($serialiser->deserialise(@_)) }) if $cb;
+    return $self->backend->get($key, sub { use Data::Dumper; print Dumper \@_; $cb->($serialiser->deserialise(@_)) }) if $cb;
     return $serialiser->deserialise($self->backend->get($key));
   } else {
     return $self->backend->get($key, sub { $cb->(@_) }) if $cb;
