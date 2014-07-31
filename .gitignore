@@ -1,4 +1,4 @@
-{{ $dist->name }}-*
+MojoX-Plugin-AnyCache-*
 blib/
 .build/
 _build/
