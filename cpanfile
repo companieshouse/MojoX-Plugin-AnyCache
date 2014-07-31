@@ -1,0 +1,10 @@
+requires 'AnyEvent';
+requires 'Cache::Memcached';
+requires 'Cache::Memcached::AnyEvent';
+requires 'Data::MessagePack';
+requires 'EV';
+requires 'Memcached::Client';
+requires 'Mojo::Base';
+requires 'Mojo::Redis';
+requires 'Mojo::Util';
+requires 'MojoX::Plugin::AnyCache';
