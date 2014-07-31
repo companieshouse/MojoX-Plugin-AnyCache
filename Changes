@@ -1,5 +1,7 @@
 Revision history for Perl module MojoX::Plugin::AnyCache
 
+{{$NEXT}}
+
 0.04 2014-06-06
  - Fix bug #3 (again)
  - Fix bug #7 (again)
