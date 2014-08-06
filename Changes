@@ -1,9 +1,8 @@
 Revision history for Perl module MojoX::Plugin::AnyCache
 
 {{$NEXT}}
-
-0.30  2014-07-31
   - harmonise to CHGOVUK standard
+  - Removed invalid dependency
 
 0.04 2014-06-06
  - Fix bug #3 (again)
