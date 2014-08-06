@@ -7,4 +7,3 @@ requires 'Memcached::Client';
 requires 'Mojo::Base';
 requires 'Mojo::Redis';
 requires 'Mojo::Util';
-requires 'MojoX::Plugin::AnyCache';
