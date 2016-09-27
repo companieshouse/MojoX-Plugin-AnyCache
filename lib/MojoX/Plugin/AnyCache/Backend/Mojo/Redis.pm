@@ -22,7 +22,7 @@ sub get_redis {
             monkey_patch "Mojo::Redis", protocol_redis => sub { $protocol };
         }
 
-		$self->redis(Mojo::Redis->new(%opts));
+		$self->redis(Mojo::Redis2->new(%opts));
 	}
 	return $self->redis;
 }
