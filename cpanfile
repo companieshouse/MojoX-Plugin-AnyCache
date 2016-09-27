@@ -5,5 +5,5 @@ requires 'Data::MessagePack';
 requires 'EV';
 requires 'Memcached::Client';
 requires 'Mojo::Base';
-requires 'Mojo::Redis';
+requires 'Mojo::Redis2';
 requires 'Mojo::Util';

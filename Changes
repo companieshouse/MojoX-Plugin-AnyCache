@@ -1,6 +1,7 @@
 Revision history for Perl module MojoX::Plugin::AnyCache
 
 {{$NEXT}}
+  - Update to use Mojo::Redis2
 
 0.30  2014-08-06
   - harmonise to CHGOVUK standard

@@ -5,7 +5,7 @@ use warnings;
 use Mojo::Base 'MojoX::Plugin::AnyCache::Backend';
 use Mojo::Util 'monkey_patch';
 
-use Mojo::Redis;
+use Mojo::Redis2;
 
 has 'redis';
 
