@@ -16,6 +16,7 @@ sub get_redis {
 	if(!$self->redis) {
 		my %opts = ();
 		$opts{server} = $self->config->{server} if exists $self->config->{server};
+        $opts{encoding} = undef;
 
         if( my $protocol = $self->config->{redis_protocol} ) {
             eval "require $protocol; 1" // die "Failed to load configured redis protocol '$protocol': $@";
