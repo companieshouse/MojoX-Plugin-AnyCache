@@ -2,7 +2,7 @@ package MojoX::Plugin::AnyCache;
 
 use Mojo::Base 'Mojolicious::Plugin';
 
-our $VERSION = '0.30';
+our $VERSION = '0.31';
 
 has '_raw';
 has 'app';
