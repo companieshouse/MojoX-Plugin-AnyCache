@@ -1,6 +1,7 @@
 Revision history for Perl module MojoX::Plugin::AnyCache
 
 {{$NEXT}}
+  - Fixed encoding to avoid use of base64, allowing native msgpack.
 
 0.30  2014-08-06
   - harmonise to CHGOVUK standard
