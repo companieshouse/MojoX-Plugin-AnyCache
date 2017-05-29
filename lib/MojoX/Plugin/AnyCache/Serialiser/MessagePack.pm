@@ -13,6 +13,8 @@ sub deserialise {
 
     return unless defined $data;
 
+    $data = decode_base64($data);
+
     # TODO implement serialiser configuration
     my $mp = Data::MessagePack->new();
     $mp->prefer_integer(0);
@@ -30,7 +32,7 @@ sub serialise {
     $mp->prefer_integer(0);
     $data = $mp->utf8(1)->pack( $data );
 
-    return $data;
+    return encode_base64($data);
 }
 
 1;
