@@ -32,7 +32,7 @@ sub serialise {
     $mp->prefer_integer(0);
     $data = $mp->pack( $data );
 
-    return encode_base64($data);
+    return encode_base64($data, '');
 }
 
 1;
