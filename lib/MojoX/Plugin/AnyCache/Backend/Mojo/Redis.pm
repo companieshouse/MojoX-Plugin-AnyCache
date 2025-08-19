@@ -6,6 +6,7 @@ use Mojo::Base 'MojoX::Plugin::AnyCache::Backend';
 use Mojo::Util 'monkey_patch';
 
 use Mojo::Redis 3.29;
+use Data::Dumper;
 
 has 'redis';
 
@@ -46,7 +47,10 @@ sub get {
 
 sub set {
 	my ($cb, $self) = (pop, shift);
-    $self->get_redis->db->set_p(@_)->then(sub {
+
+    my ( $key, $value, $expiry ) = @_;
+    my $ex = defined $expiry ? 'EX' : undef;
+    $self->get_redis->db->set_p($key, $value, $ex, $expiry)->then(sub {
             my ($value) = @_;
             $cb->($value);
         })->catch(sub {
@@ -56,14 +60,15 @@ sub set {
 }
 
 sub ttl {
-	my ($cb, $self) = (pop, shift);
-	$self->get_redis->db->ttl_p(@_)->then( sub {
-		my ($value) = @_;
-		    $cb->($value);
+    my ($cb, $self) = (pop, shift);
+
+    $self->get_redis->db->ttl_p(@_)->then( sub {
+            my ($value) = @_;
+            $cb->($value);
         })->catch(sub {
             my $err = shift;
             warn "ERROR with Redis ttl: $err";
-	});
+        });
 }
 
 sub incr {
