@@ -11,16 +11,21 @@ has 'redis';
 
 has 'support_async' => sub { 1 };
 
+sub support_xsync { return 1; }
+
 sub get_redis {
 	my ($self) = @_;
 	if(!$self->redis) {
 		my %opts = ();
-		$opts{url} = $self->config->{server} if exists $self->config->{server};
+		# $opts{server} = $self->config->{server} if exists $self->config->{server};
+        # $opts{url} = $self->config->{server} if exists $self->config->{server};
+        # Use default MOJO_REDIS_URL in docker-compose
+        # $opts{encoding} = undef;
 
-        if( my $protocol = $self->config->{redis_protocol} ) {
-            eval "require $protocol; 1" // die "Failed to load configured redis protocol '$protocol': $@";
-            monkey_patch "Mojo::Redis", protocol_redis => sub { $protocol };
-        }
+        # if( my $protocol = $self->config->{redis_protocol} ) {
+        #     eval "require $protocol; 1" // die "Failed to load configured redis protocol '$protocol': $@";
+        #     monkey_patch "Mojo::Redis", protocol_redis => sub { $protocol };
+        # }
 
 		$self->redis(Mojo::Redis->new(%opts));
 	}
@@ -30,67 +35,67 @@ sub get_redis {
 sub get {
     my ($cb, $self) = (pop, shift);
 
-    $self->get_redis->db->get(@_)->then(sub {
+    $self->get_redis->db->get_p(@_)->then(sub {
             my ($value) = @_;
             $cb->($value);
         })->catch(sub {
             my $err = shift;
-            error "ERROR with Redis get: $err";
+            warn "ERROR with Redis get: $err";
         });
 }
 
 sub set {
 	my ($cb, $self) = (pop, shift);
-    $self->get_redis->db->set(@_)->then(sub {
+    $self->get_redis->db->set_p(@_)->then(sub {
             my ($value) = @_;
             $cb->($value);
         })->catch(sub {
             my $err = shift;
-            error "ERROR with Redis set: $err";
+            warn "ERROR with Redis set: $err";
 	});
 }
 
 sub ttl {
 	my ($cb, $self) = (pop, shift);
-	$self->get_redis->db->ttl(@_)->then( sub {
+	$self->get_redis->db->ttl_p(@_)->then( sub {
 		my ($value) = @_;
 		    $cb->($value);
         })->catch(sub {
             my $err = shift;
-            error "ERROR with Redis ttl: $err";
+            warn "ERROR with Redis ttl: $err";
 	});
 }
 
 sub incr {
 	my ($cb, $self) = (pop, shift, @_);
-	$self->get_redis->db->incrby(@_)->then( sub {
+	$self->get_redis->db->incrby_p(@_)->then( sub {
 		my ($value) = @_;
 		    $cb->($value);
         })->catch(sub {
             my $err = shift;
-            error "ERROR with Redis incr: $err";
+            warn "ERROR with Redis incr: $err";
 	});
 }
 
 sub decr {
 	my ($cb, $self) = (pop, shift, @_);
-	$self->get_redis->db->decrby(@_)->then( sub {
+	$self->get_redis->db->decrby_p(@_)->then( sub {
 		my ($value) = @_;
 		    $cb->($value);
         })->catch(sub {
             my $err = shift;
-            error "ERROR with Redis decr: $err";
+            warn "ERROR with Redis decr: $err";
 	});
 }
 
 sub del {
 	my ($cb, $self) = (pop, shift, @_);
-	$self->get_redis->db->del(@_)->then( sub {
+	$self->get_redis->db->del_p(@_)->then( sub {
 		my ($value) = @_;
 		    $cb->($value);
         })->catch(sub {
             my $err = shift;
-            error "ERROR with Redis del: $err";
+            warn "ERROR with Redis del: $err";
 	});
 }
 

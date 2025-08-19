@@ -2,7 +2,7 @@ package MojoX::Plugin::AnyCache;
 
 use Mojo::Base 'Mojolicious::Plugin';
 
-our $VERSION = '0.30';
+our $VERSION = '0.33';
 
 has '_raw';
 has 'app';
@@ -33,6 +33,7 @@ sub register {
 sub check_mode {
   my ($self, $cb) = @_;
   die("No backend available") if !$self->backend;
+  # die("Backend " . ref($self->backend) ." doesn't support xsynchronous requests") if $cb && !$self->backend->support_xsync;
   die("Backend " . ref($self->backend) ." doesn't support asynchronous requests") if $cb && !$self->backend->support_async;
   die("Backend " . ref($self->backend) ." doesn't support synchronous requests") if !$cb && !$self->backend->support_sync;
 }
