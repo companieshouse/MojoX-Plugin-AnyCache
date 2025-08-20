@@ -19,7 +19,7 @@ sub register {
   if(exists $config->{backend}) {
     eval {
       eval "require $config->{backend};";
-      warn "Require failed: $@" if $self->config->{debug} && $@;
+      $app->log->warn("Require failed: $@") if $self->config->{debug} && $@;
       my $backend = $config->{backend}->new;
       $backend->config($config);
       $self->backend($backend);
